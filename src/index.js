@@ -13,10 +13,10 @@ const notFoundStatus= 404
 //Read todos from todos.json into variable
 let todos = require(__dirname + todoFilePath);
 
-// app.use(express.urlencoded({ extended: true }));
+ app.use(express.urlencoded({ extended: true }));
  app.use(express.json());
-// //app.use(express.raw());
-// app.use(bodyParser.json());
+ app.use(express.raw());
+ app.use(bodyParser.json());
 
 app.use("/content", express.static( "public"));
 console.log(path.join(__dirname, "public"))
@@ -26,24 +26,39 @@ app.get("/", (_, res) => {
 res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-//2. Get a list of todo's
+//2. Get a list of todos
 app.get('/todos', (_req, res) => {
 res.json(todos); 
 return (todos);
 });
 
-//GET /todos/:id
-app.get('/todos/:id', (req, res) => {
-const filteredTodos = todos.filter(t => t.id === String(req.params.id));
-const todo = filteredTodos[0]
-if (!todo) res.status(notFoundStatus).send('Not found');
-res.json(todo); 
-});
+// GET /todos/:id
+// app.get('/todos/:id', (req, res) => {
+// const filteredTodos = todos.filter(t => t.id === String(req.params.id));
+// const todo = filteredTodos[0]
+// if (!todo) res.status(notFoundStatus).send('Not found');
+// res.json(todo); 
+// });
 
 
 //Add GET request with path '/todos/overdue'
+app.get('/todos/overdue', (req, res) => {
+  let currentDate = new Date().toISOString()
+  const filteredTodos = todos.filter(todos => todos.due <= currentDate && todos.completed == false, todos);
+  const todo = filteredTodos;
+  if (!todo) res.send(todo.length[0]);
+  res.json(todo);
+});
 
+  
 //Add GET request with path '/todos/completed'
+app.get('/todos/completed', (req, res) => {
+const filteredTodos = todos.filter(todos => todos.completed ==true, todos);
+const todo = filteredTodos;
+if (!todo) res.send(todo.length[0]);
+res.json(todo); 
+});
+
 
 //Add POST request with path '/todos'
 
