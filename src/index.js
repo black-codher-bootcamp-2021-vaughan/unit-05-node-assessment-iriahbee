@@ -83,7 +83,7 @@ app.post("/todos", (req, res) => {
 
 //Add PATCH request with path '/todos/:id
 app.patch("/todos/:id", (req, res) => {
-  if (!req.body) {
+  if (!req.params.id) {
     return res.status(400).send("Bad Request");
   }
   //Function for going through elements and updating matching id
@@ -113,8 +113,9 @@ app.patch("/todos/:id", (req, res) => {
 
 //Add POST request with path '/todos/:id/complete
 app.post("/todos/:id/complete", (req, res) => {
-  //find in the todos if the todo exist and if not RETURN an error
-  
+  if (req.params.id !== undefined) {
+    res.status(400).send("Bad Request");
+  }
   //Updating the todos
   const updatedTodos = todos.map((todo) => {
     if (todo.id === String(req.params.id)) {
@@ -122,48 +123,66 @@ app.post("/todos/:id/complete", (req, res) => {
     }
     return todo;
   });
-  console.log(updatedTodos.length)
-  console.log(JSON.stringify(updatedTodos));
-  if (updatedTodos.length >= 1) {
-    //Writing to Json Document
-    fs.writeFile(
-      __dirname + process.env.BASE_JSON_PATH,
-      JSON.stringify(updatedTodos),
-      (err) => {
-        if (err) {
-          return res.status(errorStatus).send("Something is wrong");
-        }
+  //Writing to Json Document
+  fs.writeFile(
+    __dirname + process.env.BASE_JSON_PATH,
+    JSON.stringify(updatedTodos),
+    (err) => {
+      if (err) {
+        return res.status(errorStatus).send("Something is wrong");
       }
-    );
-    return res.status(200).send("YES! Complete updated");
-  }
-  //Return Successful resp.
+    }
+  );
+  return res.status(200).send("YES! Complete updated");
 });
 
 //Add POST request with path '/todos/:id/undo
+app.post("/todos/:id/undo", (req, res) => {
+  if (req.params.id !== undefined) {
+res.status(400).send("Bad Request");
+  }
+  //Updating the todos
+  const updatedTodos = todos.map((todo) => {
+    if (todo.id === String(req.params.id)) {
+      todo.completed = req.body.completed;
+    }
+    return todo;
+  });
+  //Writing to Json Document
+  fs.writeFile(
+    __dirname + process.env.BASE_JSON_PATH,
+    JSON.stringify(updatedTodos),
+    (err) => {
+      if (err) {
+        return res.status(errorStatus).send("Something is wrong");
+      }
+    }
+  );
+  return res.status(200).send("YES! Complete updated");
+});
 
 //Add DELETE request with path '/todos/:id
 
 app.delete("/todos/:id/", (req, res) => {
-  const filteredTodos = todos.filter((todo) => (todo.id !== String(req.params.id))) 
-     
+  if (req.params.id !== undefined) {
+    res.status(400).send("Bad Request");
+      }
+  const filteredTodos = todos.filter(
+    (todo) => todo.id !== String(req.params.id)
+  );
+  console.log(filteredTodos);
 
-
-
-
-      fs.writeFile(
-        __dirname + process.env.BASE_JSON_PATH,
-        JSON.stringify(filteredTodos),
-        (err) => {
-          if (err) {
-            return res.status(errorStatus).send("Something is wrong");
-          }
-        }
-      );
-    
-    //Return Successful resp.
-    return res.status(200).send("File has been deleted");
-  });
+  fs.writeFile(
+    __dirname + process.env.BASE_JSON_PATH,
+    JSON.stringify(filteredTodos),
+    (err) => {
+      if (err) {
+        return res.status(errorStatus).send("Something is wrong");
+      }
+    }
+  );
+  //Return Successful resp.
+  return res.status(200).send("File has been deleted");
 });
 
 app.listen(port, function () {
