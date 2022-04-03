@@ -81,7 +81,7 @@ app.post("/todos", (req, res) => {
     }
   );
   //Return Successful resp.
-  return res.status(200).send("YES! Todos updates");
+  return res.status(201).send("YES! Todos updates");
 });
 
 //Add PATCH request with path '/todos/:id
