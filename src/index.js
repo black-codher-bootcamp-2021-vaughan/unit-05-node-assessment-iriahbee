@@ -34,6 +34,9 @@ app.get("/todos", (_req, res) => {
 
 // GET /todos/:id
 app.get("/todos/:id", (req, res) => {
+  if (req.params.id !== undefined) {
+    res.status(400).send("Bad Request");
+  }
   const filteredTodos = todos.filter((t) => t.id === String(req.params.id));
   const todo = filteredTodos[0];
   if (!todo) res.status(notFoundStatus).send("Not found");
@@ -83,8 +86,8 @@ app.post("/todos", (req, res) => {
 
 //Add PATCH request with path '/todos/:id
 app.patch("/todos/:id", (req, res) => {
-  if (!req.params.id) {
-    return res.status(400).send("Bad Request");
+  if (req.params.id !== undefined) {
+    res.status(400).send("Bad Request");
   }
   //Function for going through elements and updating matching id
   const updatedTodos = todos.map((todo) => {
@@ -139,7 +142,7 @@ app.post("/todos/:id/complete", (req, res) => {
 //Add POST request with path '/todos/:id/undo
 app.post("/todos/:id/undo", (req, res) => {
   if (req.params.id !== undefined) {
-res.status(400).send("Bad Request");
+    res.status(400).send("Bad Request");
   }
   //Updating the todos
   const updatedTodos = todos.map((todo) => {
@@ -166,7 +169,7 @@ res.status(400).send("Bad Request");
 app.delete("/todos/:id/", (req, res) => {
   if (req.params.id !== undefined) {
     res.status(400).send("Bad Request");
-      }
+  }
   const filteredTodos = todos.filter(
     (todo) => todo.id !== String(req.params.id)
   );
