@@ -21,24 +21,24 @@ app.use(bodyParser.json());
 app.use("/content", express.static("public"));
 console.log(path.join(__dirname, "public"));
 
-//1. Get HTML page
+// GET /
 app.get("/", (_, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-//2. Get a list of todos
+// GET /todos/
 app.get("/todos", (_req, res) => {
   res.json(todos);
   return todos;
 });
 
 // GET /todos/:id
-// app.get('/todos/:id', (req, res) => {
-// const filteredTodos = todos.filter(t => t.id === String(req.params.id));
-// const todo = filteredTodos[0]
-// if (!todo) res.status(notFoundStatus).send('Not found');
-// res.json(todo);
-// });
+app.get("/todos/:id", (req, res) => {
+  const filteredTodos = todos.filter((t) => t.id === String(req.params.id));
+  const todo = filteredTodos[0];
+  if (!todo) res.status(notFoundStatus).send("Not found");
+  res.json(todo);
+});
 
 //Add GET request with path '/todos/overdue'
 app.get("/todos/overdue", (req, res) => {
@@ -54,14 +54,13 @@ app.get("/todos/overdue", (req, res) => {
 
 //Add GET request with path '/todos/completed'
 app.get("/todos/completed", (req, res) => {
-  const filteredTodos = todos.filter((todos) => todos.completed == true, todos);
+  const filteredTodos = todos.filter((todos) => todos.completed == true);
   const todo = filteredTodos;
   if (!todo) res.send(todo.length[0]);
   res.json(todo);
 });
 
 //Add POST request with path '/todos'
-
 app.post("/todos", (req, res) => {
   let newTodo = req.body;
   if (!newTodo.name || !newTodo.due) {
@@ -74,8 +73,7 @@ app.post("/todos", (req, res) => {
     JSON.stringify(todos),
     (err) => {
       if (err) {
-        console.error(err);
-        return;
+        return res.status(errorStatus).send("Something is wrong");
       }
     }
   );
@@ -85,8 +83,8 @@ app.post("/todos", (req, res) => {
 
 //Add PATCH request with path '/todos/:id
 app.patch("/todos/:id", (req, res) => {
-  if (!req.body.name && !req.body.due) {
-    return res.status(errorStatus).send("Bad Request");
+  if (!req.body) {
+    return res.status(400).send("Bad Request");
   }
   //Function for going through elements and updating matching id
   const updatedTodos = todos.map((todo) => {
@@ -114,32 +112,59 @@ app.patch("/todos/:id", (req, res) => {
 });
 
 //Add POST request with path '/todos/:id/complete
-app.post("/todos", (req, res) => {
-  const filteredTodos = todos.filter((t) => t.id === String(req.params.id));
-
-  let newTodo = req.body;
-  if (!newTodo.name || !newTodo.due) {
-    return (err) => res.status(errorStatus).send(err);
-  }
-  todos.push(newTodo);
-  //Writing to Json Document
-  fs.writeFile(
-    __dirname + process.env.BASE_JSON_PATH,
-    JSON.stringify(todos),
-    (err) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
+app.post("/todos/:id/complete", (req, res) => {
+  //find in the todos if the todo exist and if not RETURN an error
+  
+  //Updating the todos
+  const updatedTodos = todos.map((todo) => {
+    if (todo.id === String(req.params.id)) {
+      todo.completed = req.body.completed;
     }
-  );
+    return todo;
+  });
+  console.log(updatedTodos.length)
+  console.log(JSON.stringify(updatedTodos));
+  if (updatedTodos.length >= 1) {
+    //Writing to Json Document
+    fs.writeFile(
+      __dirname + process.env.BASE_JSON_PATH,
+      JSON.stringify(updatedTodos),
+      (err) => {
+        if (err) {
+          return res.status(errorStatus).send("Something is wrong");
+        }
+      }
+    );
+    return res.status(200).send("YES! Complete updated");
+  }
   //Return Successful resp.
-  return res.status(200).send("YES! Todos updates");
 });
 
 //Add POST request with path '/todos/:id/undo
 
 //Add DELETE request with path '/todos/:id
+
+app.delete("/todos/:id/", (req, res) => {
+  const filteredTodos = todos.filter((todo) => (todo.id !== String(req.params.id))) 
+     
+
+
+
+
+      fs.writeFile(
+        __dirname + process.env.BASE_JSON_PATH,
+        JSON.stringify(filteredTodos),
+        (err) => {
+          if (err) {
+            return res.status(errorStatus).send("Something is wrong");
+          }
+        }
+      );
+    
+    //Return Successful resp.
+    return res.status(200).send("File has been deleted");
+  });
+});
 
 app.listen(port, function () {
   console.log(`Node server is running... http://localhost:${port}`);
